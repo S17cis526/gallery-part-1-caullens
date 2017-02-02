@@ -14,6 +14,48 @@ var stylesheet = fs.readFileSync("gallery.css");
 
 var imageNames = ['/chess', '/mobile', '/ace', '/bubble', '/fern'];
 
+function getImageNames(callback) {
+	fs.readdir("images/", function(err, filenames) {
+		if(err) callback(err, undefined);
+		else callback(false, filenames);
+	});
+}
+
+function imageNamesToTags(filenames) {
+	return filenames.map(function(filename) {
+		return `<a href="${filename}"><img src="${filename}" alt="${filename}"></a>`;
+	});
+}
+
+function serveGallery(req, res) {
+	getImageNames(function(err, imagenames) {
+		if(err) {
+			console.error(err);
+			res.statusCode = 404;
+			res.statusMessage = 'Resource not found';
+			res.end();
+			return;
+		}
+		res.setHeader('Content-Type', 'text/html');
+		res.end(buildGallery(imagenames));
+	});
+}
+
+function buildGallery(imagetags) {
+	var html = "<!doctype html>";
+	html += "<head>"
+	html += "  <title>Gallery</title>";
+	html += "  <link href='/gallery.css' type='text/css' rel='stylesheet'>";
+	html += "</head>";
+	html += "<body>";
+	html += "  <h1>Gallery</h1>";
+	html += imageNamesToTags(imagetags).join(' ');
+	html += "  <h1>Hello. Time is " + Date.now() + "</hl>";
+	html += "  <h2>I like bananas</h2>";
+	html += "</body>";
+	return html;
+}
+
 function serveImage(filename, req, res) {
 	fs.readFile('images/' + filename, function(err, body) {
 		if(err) {
@@ -30,54 +72,17 @@ function serveImage(filename, req, res) {
 
 var server = http.createServer(function(req, res) {
 	switch(req.url) {
-		case "/chess":
-			serveImage('chess.jpg', req, res);
-			break;
-		case "/mobile":
-			serveImage('mobile.jpg', req, res);
-			break;
-		case "/ace":
-			serveImage('ace.jpg', req, res);
-			break;
-		case "/bubble":
-			serveImage('bubble.jpg', req, res);
-			break;
-		case "/fern":
-			serveImage('fern.jpg', req, res);
-			break;
+		case "/":
+		case "":
 		case "/gallery":
-			var gHtml = imageNames.map(function(filename) {
-				return "<image src='" + filename + "' alt='A fishing ace at work'>"
-			}).join(' ');
-			var html = "<!doctype html>";
-			html += "<head>"
-			html += "  <title>Gallery</title>";
-			html += "  <link href='/gallery.css' type='text/css' rel='stylesheet'>";
-			html += "</head>";
-			html += "<body>";
-			html += "  <h1>Gallery</h1>";
-			html += gHtml;
-			html += "  <h1>Hello. Time is " + Date.now() + "</hl>";
-			html += "  <h2>I like bananas</h2>";
-			html += "</body>";
-			res.setHeader('Content-Type', 'text/html');
-			res.end(html);
+			serveGallery(req, res);
 			break;
 		case "/gallery.css":
 			res.setHeader('Content-Type', 'text/css');
 			res.end(stylesheet);
 			break;
 		default:
-			res.statusCode = 404;
-			res.statusMessage = "Not found";
-			var htmlerror = "<!doctype html>";
-			htmlerror += "<head><title>Error 404</title></head>";
-			htmlerror += "<body>";
-			htmlerror += "  <h1>ERROR 404</h1>";
-			htmlerror += "    <p>C'mon son, go to a valid URL. This one doesn't exist</p>"
-			htmlerror += "</body>"
-			res.setHeader('Content-Type', 'text/html');
-			res.end(htmlerror);
+			serveImage(req.url, req, res);
 	}
 });
 
