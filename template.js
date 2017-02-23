@@ -1,5 +1,5 @@
 /** @module template
-  * 
+  *
   */
 
 module.exports = {
@@ -32,7 +32,7 @@ function loadDir(directory) {
   * @param {...}
   */
 function render(templateName, context) {
-	return templates[templateName].replace(/<%= (.+) %>/g, function(match, js) {
+	return templates[templateName].replace(/<%= (.+?) %>/g, function(match, js) {
 		return eval("var context = " + JSON.stringify(context) + ";" + js);
 	});
 }

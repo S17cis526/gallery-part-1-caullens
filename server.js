@@ -8,10 +8,14 @@
 /* global variables */
 var multipart = require('./multipart');
 var template = require('./template');
+var staticFiles = require('./static');
 var http = require('http');
 var url = require('url');
 var fs = require('fs');
 var port = 2000;
+
+/* load public files */
+
 
 /* load cached files */
 var config = JSON.parse(fs.readFileSync('config.json'));
@@ -58,7 +62,7 @@ function imageNamesToTags(fileNames) {
  */
 function buildGallery(imageTags) {
   return template.render('gallery.html', {
-		title: config.title, 
+		title: config.title,
 		imageTags: imageNamesToTags(imageTags).join(" ")
 	  });
 }
@@ -170,8 +174,11 @@ function handleRequest(req, res) {
 		res.setHeader('Content-Type', 'text/javascript');
 		res.end(script);
 		break;
-    default:
-      serveImage(req.url, req, res);
+  default:
+    if(staticFiles.isCached(req.url)) {
+      staticFiles.serveFile(req.url);
+    }
+        serveImage(req.url, req, res);
   }
 }
 
