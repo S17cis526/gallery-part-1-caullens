@@ -3,19 +3,19 @@ img {
 }
 
 #gallery-title-edit {
-	display: none;
+  display: none;
 }
 
 #gallery-title {
-	cursor: pointer;
+  cursor: pointer;
 }
 
 #image-upload-form {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	border: 2px solid red;
-	border-radius: 5px;
-	background-color: pink;
-	padding: 10px;
+  display:flex;
+  flex-direction: column;
+  align-items: center;
+  border: 2px solid red;
+  border-radius: 5px;
+  background-color: pink;
+  padding: 10px;
 }

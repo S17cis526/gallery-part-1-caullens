@@ -1,9 +1,11 @@
 /** @module static
-  * Loads and serves static files
-  */
+ * loads and serves static files
+ */
 
 module.exports = {
-  loadDir: loadDir
+   loadDir: loadDir,
+   isCached: isCached,
+   serveFile: serveFile
 }
 
 var files = {};
@@ -12,7 +14,7 @@ var fs = require('fs');
 function loadDir(directory) {
   var items = fs.readdirSync(directory);
   items.forEach(function(item) {
-    var path = directory + '/' + item
+    var path = directory + '/' + item;
     var stats = fs.statSync(path);
     if(stats.isFile()) {
       var parts = path.split('.');
@@ -22,22 +24,27 @@ function loadDir(directory) {
         case 'css':
           type = 'text/css';
           break;
+
         case 'js':
           type = 'text/javascript';
           break;
+
         case 'jpeg':
+        case 'jpg':
           type = 'image/jpeg';
           break;
+
         case 'gif':
         case 'png':
         case 'bmp':
         case 'tiff':
+        case 'svg':
           type = 'image/' + extension;
           break;
       }
       files[path] = {
-        data: fs.readFileSync(path),
-        contentType: type
+        contentType: type,
+        data: fs.readFileSync(path)
       }
     }
     if(stats.isDirectory()) {
@@ -52,6 +59,6 @@ function isCached(path) {
 
 function serveFile(path, req, res) {
   res.statusCode = 200;
-  res.writeHeader('Content-Type', files[path].contentType);
-  res.end(file[path].data);
+  res.setHeader('Content-Type',files[path].contentType);
+  res.end(files[path].data);
 }

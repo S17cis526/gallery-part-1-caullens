@@ -7,22 +7,21 @@
 
 /* global variables */
 var multipart = require('./multipart');
-var template = require('./template');
-var staticFiles = require('./static');
+var template = require('./template.js');
+var staticFiles = require('./static.js');
 var http = require('http');
 var url = require('url');
 var fs = require('fs');
-var port = 2000;
-
-/* load public files */
-
+var port = 3000;
 
 /* load cached files */
 var config = JSON.parse(fs.readFileSync('config.json'));
 var stylesheet = fs.readFileSync('public/gallery.css');
 var script = fs.readFileSync('public/gallery.js');
 
-/* load templates */
+//load public directory
+staticFiles.loadDir('public');
+//load templates
 template.loadDir('templates');
 
 /** @function getImageNames
@@ -48,8 +47,8 @@ function getImageNames(callback) {
 function imageNamesToTags(fileNames) {
   return fileNames.map(function(fileName) {
     return template.render('image-tags.html', {
-		fileName: fileName
-	});
+      fileName: fileName
+    });
   });
 }
 
@@ -62,9 +61,9 @@ function imageNamesToTags(fileNames) {
  */
 function buildGallery(imageTags) {
   return template.render('gallery.html', {
-		title: config.title,
-		imageTags: imageNamesToTags(imageTags).join(" ")
-	  });
+    title: config.title,
+    imageTags: imageNamesToTags(imageTags).join('')
+  });
 }
 
 /** @function serveGallery
@@ -117,7 +116,6 @@ function serveImage(fileName, req, res) {
 function uploadImage(req, res) {
   multipart(req, res, function(req, res) {
     // make sure an image was uploaded
-    console.log('filename', req.body.filename)
     if(!req.body.image.filename) {
       console.error("No file in upload");
       res.statusCode = 400;
@@ -166,19 +164,12 @@ function handleRequest(req, res) {
         uploadImage(req, res);
       }
       break;
-    case '/gallery.css':
-      res.setHeader('Content-Type', 'text/css');
-      res.end(stylesheet);
-      break;
-	case '/gallery.js':
-		res.setHeader('Content-Type', 'text/javascript');
-		res.end(script);
-		break;
-  default:
-    if(staticFiles.isCached(req.url)) {
-      staticFiles.serveFile(req.url);
-    }
-        serveImage(req.url, req, res);
+
+    default:
+      if(staticFiles.isCached('public' + req.url)) {
+        staticFiles.serveFile('public' + req.url, req, res);
+      }
+      else serveImage(req.url, req, res);
   }
 }
 
